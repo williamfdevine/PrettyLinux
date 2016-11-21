@@ -159,7 +159,6 @@ EXPORT_SYMBOL(arch_hibernation_header_save);
 
 int arch_hibernation_header_restore(void *addr)
 {
-	int ret;
 	struct arch_hibernate_hdr_invariants invariants;
 	struct arch_hibernate_hdr *hdr = addr;
 
@@ -185,7 +184,7 @@ int arch_hibernation_header_restore(void *addr)
 	if (!cpu_online(sleep_cpu))
 	{
 		pr_info("Hibernated on a CPU that is offline! Bringing CPU up.\n");
-		ret = cpu_up(sleep_cpu);
+		int ret = cpu_up(sleep_cpu);
 
 		if (ret)
 		{
@@ -407,8 +406,11 @@ static int copy_pte(pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long start,
 	do
 	{
 		_copy_pte(dst_pte, src_pte, addr);
+		dst_pte++;
+		src_pte++;
+		addr += PAGE_SIZE;
 	}
-	while (dst_pte++, src_pte++, addr += PAGE_SIZE, addr != end);
+	while (addr != end);
 
 	return 0;
 }
@@ -418,7 +420,6 @@ static int copy_pmd(pud_t *dst_pud, pud_t *src_pud, unsigned long start,
 {
 	pmd_t *src_pmd;
 	pmd_t *dst_pmd;
-	unsigned long next;
 	unsigned long addr = start;
 
 	if (pud_none(*dst_pud))
@@ -439,7 +440,7 @@ static int copy_pmd(pud_t *dst_pud, pud_t *src_pud, unsigned long start,
 
 	do
 	{
-		next = pmd_addr_end(addr, end);
+		unsigned long next = pmd_addr_end(addr, end);
 
 		if (pmd_none(*src_pmd))
 		{
@@ -458,8 +459,12 @@ static int copy_pmd(pud_t *dst_pud, pud_t *src_pud, unsigned long start,
 			set_pmd(dst_pmd,
 					__pmd(pmd_val(*src_pmd) & ~PMD_SECT_RDONLY));
 		}
+
+		dst_pmd++;
+		src_pmd++;
+		addr = next;
 	}
-	while (dst_pmd++, src_pmd++, addr = next, addr != end);
+	while (addr != end);
 
 	return 0;
 }
@@ -469,7 +474,6 @@ static int copy_pud(pgd_t *dst_pgd, pgd_t *src_pgd, unsigned long start,
 {
 	pud_t *dst_pud;
 	pud_t *src_pud;
-	unsigned long next;
 	unsigned long addr = start;
 
 	if (pgd_none(*dst_pgd))
@@ -490,7 +494,7 @@ static int copy_pud(pgd_t *dst_pgd, pgd_t *src_pgd, unsigned long start,
 
 	do
 	{
-		next = pud_addr_end(addr, end);
+		unsigned long next = pud_addr_end(addr, end);
 
 		if (pud_none(*src_pud))
 		{
@@ -509,8 +513,12 @@ static int copy_pud(pgd_t *dst_pgd, pgd_t *src_pgd, unsigned long start,
 			set_pud(dst_pud,
 					__pud(pud_val(*src_pud) & ~PMD_SECT_RDONLY));
 		}
+
+		dst_pud++;
+		src_pud++;
+		addr = next;
 	}
-	while (dst_pud++, src_pud++, addr = next, addr != end);
+	while (addr != end);
 
 	return 0;
 }
@@ -518,7 +526,6 @@ static int copy_pud(pgd_t *dst_pgd, pgd_t *src_pgd, unsigned long start,
 static int copy_page_tables(pgd_t *dst_pgd, unsigned long start,
 							unsigned long end)
 {
-	unsigned long next;
 	unsigned long addr = start;
 	pgd_t *src_pgd = pgd_offset_k(start);
 
@@ -526,7 +533,7 @@ static int copy_page_tables(pgd_t *dst_pgd, unsigned long start,
 
 	do
 	{
-		next = pgd_addr_end(addr, end);
+		unsigned long next = pgd_addr_end(addr, end);
 
 		if (pgd_none(*src_pgd))
 		{
@@ -537,8 +544,12 @@ static int copy_page_tables(pgd_t *dst_pgd, unsigned long start,
 		{
 			return -ENOMEM;
 		}
+
+		dst_pgd++;
+		src_pgd++;
+		addr = next;
 	}
-	while (dst_pgd++, src_pgd++, addr = next, addr != end);
+	while (addr != end);
 
 	return 0;
 }

@@ -127,8 +127,10 @@ static void alloc_init_pte(pmd_t *pmd, unsigned long addr,
 	{
 		set_pte(pte, pfn_pte(pfn, prot));
 		pfn++;
+		pte++;
+		addr += PAGE_SIZE;
 	}
-	while (pte++, addr += PAGE_SIZE, addr != end);
+	while (addr != end);
 
 	pte_clear_fixmap();
 }
@@ -139,7 +141,6 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 						   bool allow_block_mappings)
 {
 	pmd_t *pmd;
-	unsigned long next;
 
 	/*
 	 * Check for initial section mappings in the pgd/pud and remove them.
@@ -162,7 +163,7 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 
 	do
 	{
-		next = pmd_addr_end(addr, end);
+		unsigned long next = pmd_addr_end(addr, end);
 
 		/* try section mapping first */
 		if (((addr | next | phys) & ~SECTION_MASK) == 0 &&
@@ -197,8 +198,10 @@ static void alloc_init_pmd(pud_t *pud, unsigned long addr, unsigned long end,
 		}
 
 		phys += next - addr;
+		pmd++;
+		addr = next;
 	}
-	while (pmd++, addr = next, addr != end);
+	while (addr != end);
 
 	pmd_clear_fixmap();
 }
@@ -225,7 +228,6 @@ static void alloc_init_pud(pgd_t *pgd, unsigned long addr, unsigned long end,
 						   bool allow_block_mappings)
 {
 	pud_t *pud;
-	unsigned long next;
 
 	if (pgd_none(*pgd))
 	{
@@ -241,7 +243,7 @@ static void alloc_init_pud(pgd_t *pgd, unsigned long addr, unsigned long end,
 
 	do
 	{
-		next = pud_addr_end(addr, end);
+		unsigned long next = pud_addr_end(addr, end);
 
 		/*
 		 * For 4K granule only, attempt to put down a 1GB block
@@ -280,8 +282,10 @@ static void alloc_init_pud(pgd_t *pgd, unsigned long addr, unsigned long end,
 		}
 
 		phys += next - addr;
+		pud++;
+		addr = next;
 	}
-	while (pud++, addr = next, addr != end);
+	while (addr != end);
 
 	pud_clear_fixmap();
 }
@@ -292,7 +296,7 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 								 phys_addr_t (*pgtable_alloc)(void),
 								 bool allow_block_mappings)
 {
-	unsigned long addr, length, end, next;
+	unsigned long addr, length, end;
 	pgd_t *pgd = pgd_offset_raw(pgdir, virt);
 
 	/*
@@ -312,12 +316,14 @@ static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
 
 	do
 	{
-		next = pgd_addr_end(addr, end);
+		unsigned long next = pgd_addr_end(addr, end);
 		alloc_init_pud(pgd, addr, next, phys, prot, pgtable_alloc,
 					   allow_block_mappings);
 		phys += next - addr;
+		pgd++;
+		addr = next;
 	}
-	while (pgd++, addr = next, addr != end);
+	while (addr != end);
 }
 
 static phys_addr_t pgd_pgtable_alloc(void)
@@ -817,6 +823,7 @@ void *__init __fixmap_remap_fdt(phys_addr_t dt_phys, int *size, pgprot_t prot)
 				 __fix_to_virt(FIX_BTMAP_BEGIN) >> SWAPPER_TABLE_SHIFT);
 
 	offset = dt_phys % SWAPPER_BLOCK_SIZE;
+	//@TODO WHO THE FUCK DOES VOID POINTER ARITHMETIC ON A PORTABLE SYSTEM??
 	dt_virt = (void *)dt_virt_base + offset;
 
 	/* map the first chunk so we can read the size from the header */

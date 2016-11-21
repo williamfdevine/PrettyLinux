@@ -2726,7 +2726,7 @@ static int check_sysreg_table(const struct sys_reg_desc *table, unsigned int n)
 void kvm_sys_reg_table_init(void)
 {
 	unsigned int i;
-	struct sys_reg_desc clidr;
+	struct sys_reg_desc clidr = {0};
 
 	/* Make sure tables are unique and in order. */
 	BUG_ON(check_sysreg_table(sys_reg_descs, ARRAY_SIZE(sys_reg_descs)));
@@ -2756,10 +2756,12 @@ void kvm_sys_reg_table_init(void)
 	cache_levels = clidr.val;
 
 	for (i = 0; i < 7; i++)
+	{
 		if (((cache_levels >> (i * 3)) & 7) == 0)
 		{
 			break;
 		}
+	}
 
 	/* Clear all higher bits. */
 	cache_levels &= (1 << (i * 3)) - 1;
