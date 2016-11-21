@@ -49,19 +49,20 @@ void reset_device(int fd)
 
 void claim_some_intf(int fd)
 {
-	int i, res;
+	int i = 0;
 
 	for (i = 0; i < 4; i++)
 	{
-		res = ioctl(fd, USBDEVFS_CLAIMINTERFACE, &i);
+		int res = ioctl(fd, USBDEVFS_CLAIMINTERFACE, &i);
 
 		if (!res)
 		{
 			printf("OK: claimed if %d\n", i);
 		}
 		else
-			printf("ERROR claiming if %d (%d - %s)\n",
-				   i, -res, strerror(-res));
+		{
+			printf("ERROR claiming if %d (%d - %s)\n", i, -res, strerror(-res));
+		}
 	}
 }
 

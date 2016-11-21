@@ -76,7 +76,7 @@ int
 check_range(unsigned long vstart, unsigned long vend,
 			unsigned long kstart, unsigned long kend)
 {
-	unsigned long vaddr, kaddr;
+	unsigned long vaddr = vstart;
 
 #ifdef DEBUG_CHECK_RANGE
 	srm_printk("check_range: V[0x%lx:0x%lx] K[0x%lx:0x%lx]\n",
@@ -86,7 +86,7 @@ check_range(unsigned long vstart, unsigned long vend,
 	/* do some range checking for detecting an overlap... */
 	for (vaddr = vstart; vaddr <= vend; vaddr += PAGE_SIZE)
 	{
-		kaddr = (find_pa(vaddr) | PAGE_OFFSET);
+		unsigned long kaddr = (find_pa(vaddr) | PAGE_OFFSET);
 
 		if (kaddr >= kstart && kaddr <= kend)
 		{

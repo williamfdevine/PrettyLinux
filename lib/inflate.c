@@ -765,7 +765,7 @@ STATIC int INIT inflate_codes(
 			NEEDBITS(e)
 			d = w - t->v.n - ((unsigned)b & mask_bits[e]);
 			DUMPBITS(e)
-			Tracevv((stderr, "\\[%d,%d]", w - d, n));
+			Tracevv((stderr, "\\[%d,%d]", (int)(w - d), (int)n));
 
 			/* do the copy */
 			do
@@ -808,7 +808,7 @@ STATIC int INIT inflate_codes(
 	return 0;
 
 underrun:
-	return 4;			/* Input underrun */
+	return 4;           /* Input underrun */
 }
 
 
@@ -873,7 +873,7 @@ STATIC int INIT inflate_stored(void)
 	return 0;
 
 underrun:
-	return 4;			/* Input underrun */
+	return 4;           /* Input underrun */
 }
 
 
@@ -1207,7 +1207,7 @@ out:
 	return ret;
 
 underrun:
-	ret = 4;			/* Input underrun */
+	ret = 4;            /* Input underrun */
 	goto out;
 }
 
@@ -1267,7 +1267,7 @@ STATIC int INIT inflate_block(
 	return 2;
 
 underrun:
-	return 4;			/* Input underrun */
+	return 4;           /* Input underrun */
 }
 
 
@@ -1276,14 +1276,12 @@ STATIC int INIT inflate(void)
 /* decompress an inflated entry */
 {
 	int e;                /* last block flag */
-	int r;                /* result code */
 	unsigned h;           /* maximum struct huft's malloc'ed */
 
 	/* initialize window, bit buffer */
 	wp = 0;
 	bk = 0;
 	bb = 0;
-
 
 	/* decompress until the last block */
 	h = 0;
@@ -1294,7 +1292,7 @@ STATIC int INIT inflate(void)
 #ifdef ARCH_HAS_DECOMP_WDOG
 		arch_decomp_wdog();
 #endif
-		r = inflate_block(&e);
+		int r = inflate_block(&e); /* result code */
 
 		if (r)
 		{
@@ -1335,7 +1333,7 @@ STATIC int INIT inflate(void)
  **********************************************************************/
 
 static ulg crc_32_tab[256];
-static ulg crc;		/* initialized in makecrc() so it'll reside in bss */
+static ulg crc;     /* initialized in makecrc() so it'll reside in bss */
 #define CRC_VALUE (crc ^ 0xffffffffUL)
 
 /*
@@ -1346,9 +1344,8 @@ static ulg crc;		/* initialized in makecrc() so it'll reside in bss */
 static void INIT
 makecrc(void)
 {
-	/* Not copyrighted 1990 Mark Adler	*/
+	/* Not copyrighted 1990 Mark Adler  */
 
-	unsigned long c;      /* crc shift register */
 	unsigned long e;      /* polynomial exclusive-or pattern */
 	int i;                /* counter for all possible eight bit values */
 	int k;                /* byte being shifted into crc apparatus */
@@ -1368,11 +1365,11 @@ makecrc(void)
 
 	for (i = 1; i < 256; i++)
 	{
-		c = 0;
+		unsigned long c = 0; /* crc shift register */
 
 		for (k = i | 256; k != 1; k >>= 1)
 		{
-			c = c & 1 ? (c >> 1) ^ e : c >> 1;
+			c = (c & 1) ? ((c >> 1) ^ e) : (c >> 1);
 
 			if (k & 1)
 			{
@@ -1446,7 +1443,7 @@ static int INIT gunzip(void)
 		return -1;
 	}
 
-	NEXTBYTE();	/* Get timestamp */
+	NEXTBYTE(); /* Get timestamp */
 	NEXTBYTE();
 	NEXTBYTE();
 	NEXTBYTE();
@@ -1535,7 +1532,7 @@ static int INIT gunzip(void)
 
 	return 0;
 
-underrun:			/* NEXTBYTE() goto's here if needed */
+underrun:           /* NEXTBYTE() goto's here if needed */
 	error("out of input data");
 	return -1;
 }

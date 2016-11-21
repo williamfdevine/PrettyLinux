@@ -125,14 +125,14 @@ void flush_window(void)
 {
 	ulg c = crc;
 	unsigned n;
-	uch *in, *out, ch;
+	uch *in, *out;
 
 	in = window;
 	out = &output_data[output_ptr];
 
 	for (n = 0; n < outcnt; n++)
 	{
-		ch = *out++ = *in++;
+		uch ch = *out++ = *in++;
 		c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
 	}
 
@@ -140,7 +140,6 @@ void flush_window(void)
 	bytes_out += (ulg)outcnt;
 	output_ptr += (ulg)outcnt;
 	outcnt = 0;
-	/*	puts("."); */
 }
 
 static void error(char *x)
